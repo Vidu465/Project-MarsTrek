@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [137.37, -4.77] },
+      "properties": { "id": "T1", "name": "Murray Formation outcrop", "sci": 6, "sampleMin": 30,
+        "unit": "Layered mudstone", "desc": "Lake-bed sediments recording early Mars environments.", "verified": false }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [137.40, -4.95] },
+      "properties": { "id": "T2", "name": "Boxwork formation", "sci": 10, "sampleMin": 45,
+        "unit": "Sulfate-rich fractured bedrock", "desc": "Fractured ridges studied for ancient groundwater activity.", "verified": false }
+    }
+  ]
+}

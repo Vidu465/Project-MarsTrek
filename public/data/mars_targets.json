@@ -1,0 +1,29 @@
+{
+  "site": "Gale Crater - Mount Sharp Excursion Zone",
+  "sourceMissions": ["MRO (HiRISE)", "Mars Science Laboratory (Curiosity)", "USGS Geologic Mapping"],
+  "center": [137.4, -5.4], 
+  "waypoints": [
+    {
+      "id": "wp-1",
+      "name": "Boxwork Formation Outcrop",
+      "coordinates": [137.42, -5.41],
+      "type": "science",
+      "elevation": "-4,450m",
+      "geologyUnit": "Sulfate-rich fractured bedrock",
+      "description": "High concentration of fractured sulfate veins studied for ancient water activity.",
+      "radiationRisk": "Low (Terrain shielded)",
+      "povImage": "/textures/boxwork_sample.jpg"
+    },
+    {
+      "id": "wp-2",
+      "name": "Steep Basalt Ridge (Hazard)",
+      "coordinates": [137.38, -5.45],
+      "type": "hazard",
+      "elevation": "-4,320m",
+      "geologyUnit": "Basaltic sand and slope debris",
+      "description": "Loose scree slope and 15-degree incline. High slip risk for spacesuit mobility.",
+      "radiationRisk": "Moderate",
+      "povImage": "/textures/ridge_hazard.jpg"
+    }
+  ]
+}
