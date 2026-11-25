@@ -1,3 +1,9 @@
+
+
+https://github.com/user-attachments/assets/ed5d37de-abc5-47ad-b974-4d87e598180b
+
+
+
 # MarsTrek Surface Mission Planner
 
 An interactive, browser-based EVA planning prototype for exploring the Gale Crater region of Mars. The app combines orbital imagery, candidate science targets, rover traverse context, route planning, illustrative crew and suit checks, and links to planetary science archives.
