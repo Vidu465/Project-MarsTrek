@@ -123,6 +123,88 @@ npm run build
 npm run preview
 ```
 
+## Docker
+
+The Docker image builds the app with Node.js and serves the production files with Nginx. From the repository root, build and run it with Docker Desktop or Docker Engine:
+
+```powershell
+docker build -t marstrek .
+docker run --rm -p 8080:8080 marstrek
+```
+
+Open <http://localhost:8080>. The image includes an HTTP health check. Rebuild the image after changing the app.
+
+## AWS hosting with Terraform
+
+The Terraform configuration in `infra/` creates a private S3 bucket and a CloudFront distribution. CloudFront serves the static Vite build over HTTPS; the bucket blocks public access and grants read access only to that distribution. The default CloudFront hostname is used, so a custom domain and certificate are not required.
+
+### Prerequisites
+
+- An AWS account and AWS CLI credentials configured locally (for example, with AWS IAM Identity Center / SSO).
+- Terraform CLI installed.
+- Node.js/npm installed, and Docker is optional for this static-site deployment.
+- AWS permissions to create S3 buckets and bucket policies, CloudFront resources, and related resources.
+
+### Create the infrastructure
+
+Run from the repository root in PowerShell:
+
+```powershell
+terraform -chdir=infra init
+terraform -chdir=infra fmt -check
+terraform -chdir=infra validate
+terraform -chdir=infra plan
+terraform -chdir=infra apply
+```
+
+Review the plan before applying it. AWS resources can incur charges. Terraform state contains infrastructure details; keep it private, back it up, and do not commit it. For a team or CI deployment, configure a remote state backend with locking before sharing changes.
+
+### Upload a release
+
+Build the app and sync the generated `dist/` files to the private bucket. Then invalidate CloudFront so visitors see the latest app shell:
+
+```powershell
+npm ci
+npm run build
+$bucket = terraform -chdir=infra output -raw s3_bucket_name
+$distribution = terraform -chdir=infra output -raw cloudfront_distribution_id
+aws s3 sync .\dist "s3://$bucket" --delete
+aws cloudfront create-invalidation --distribution-id $distribution --paths "/*"
+terraform -chdir=infra output -raw site_url
+```
+
+The upload command uses `--delete` to remove files from the bucket that are no longer in `dist/`; use it only for this app's dedicated bucket. For automated releases, GitHub Actions can run the build and upload after CI passes, using AWS OIDC instead of long-lived AWS keys.
+
+### GitHub Actions deployment setup
+
+The workflows in `.github/workflows/` run lint, the production build, and a Docker image build for pushes and pull requests. Terraform changes also run formatting and validation checks. After CI passes on a push to `main`, the deploy job builds the app, syncs `dist/` to S3, and invalidates CloudFront.
+
+To enable deployment:
+
+1. Apply the Terraform configuration and note its `s3_bucket_name`, `cloudfront_distribution_id`, and `site_url` outputs.
+2. In the AWS account, configure GitHub as an OpenID Connect identity provider (`token.actions.githubusercontent.com`, audience `sts.amazonaws.com`) and create an IAM role trusted only for this repository's `main` branch: `repo:Vidu465/Project-MarsTrek:ref:refs/heads/main`.
+3. Give that role only the deployment permissions it needs: list the deployment bucket, put and delete objects in that bucket, and create invalidations for this CloudFront distribution. Scope the S3 and CloudFront resource ARNs to the values created for this site.
+4. In GitHub, open **Settings → Secrets and variables → Actions → Variables** and add these repository variables:
+
+   | Variable | Value |
+   | --- | --- |
+   | `AWS_ROLE_ARN` | ARN of the OIDC deployment role |
+   | `AWS_REGION` | Region used for the S3 bucket (for example, `us-east-1`) |
+   | `S3_BUCKET_NAME` | Terraform `s3_bucket_name` output |
+   | `CLOUDFRONT_DISTRIBUTION_ID` | Terraform `cloudfront_distribution_id` output |
+
+The deploy job stays skipped until all four variables are set. The validation and Docker build jobs still run. Do not store AWS access keys in GitHub; the workflow requests short-lived credentials through OIDC.
+
+### Remove the AWS resources
+
+When you no longer need the deployment, review and run:
+
+```powershell
+terraform -chdir=infra destroy
+```
+
+S3 bucket deletion can fail if objects remain. Empty the bucket first if Terraform reports that it is not empty. Keep any state file or remote backend until resource deletion has completed successfully.
+
 ## Limitations
 
 - The terrain and slope grid is synthetic; the hazard overlay is only a visual demonstration.
